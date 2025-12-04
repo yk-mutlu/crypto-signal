@@ -4,7 +4,6 @@ import { SignalCard } from '@/components/SignalCard';
 import { ScanStatus } from '@/lib/scanner';
 import { SignalResult } from '@/lib/indicators';
 import { Play, Square, Zap, TrendingUp, TrendingDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface DashboardProps {
   isRunning: boolean;
@@ -12,9 +11,10 @@ interface DashboardProps {
   signals: SignalResult[];
   onStart: () => void;
   onStop: () => void;
+  onSignalClick?: (signal: SignalResult) => void;
 }
 
-export function Dashboard({ isRunning, status, signals, onStart, onStop }: DashboardProps) {
+export function Dashboard({ isRunning, status, signals, onStart, onStop, onSignalClick }: DashboardProps) {
   const recentSignals = signals.slice(0, 3);
   const longCount = signals.filter(s => s.direction === 'LONG').length;
   const shortCount = signals.filter(s => s.direction === 'SHORT').length;
@@ -92,7 +92,11 @@ export function Dashboard({ isRunning, status, signals, onStart, onStop }: Dashb
           </h2>
           <div className="space-y-3">
             {recentSignals.map((signal, i) => (
-              <SignalCard key={`${signal.symbol}-${signal.timestamp}-${i}`} signal={signal} />
+              <SignalCard 
+                key={`${signal.symbol}-${signal.timestamp}-${i}`} 
+                signal={signal}
+                onClick={() => onSignalClick?.(signal)}
+              />
             ))}
           </div>
         </div>

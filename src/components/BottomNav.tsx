@@ -1,18 +1,20 @@
-import { LayoutDashboard, Bell, Settings, Activity } from 'lucide-react';
+import { LayoutDashboard, Bell, Settings, Activity, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Tab = 'dashboard' | 'signals' | 'settings';
+type Tab = 'dashboard' | 'signals' | 'settings' | 'favorites';
 
 interface BottomNavProps {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
   signalCount?: number;
+  favoritesCount?: number;
 }
 
-export function BottomNav({ activeTab, onTabChange, signalCount = 0 }: BottomNavProps) {
+export function BottomNav({ activeTab, onTabChange, signalCount = 0, favoritesCount = 0 }: BottomNavProps) {
   const tabs = [
     { id: 'dashboard' as Tab, label: 'Tarama', icon: Activity },
     { id: 'signals' as Tab, label: 'Sinyaller', icon: Bell, badge: signalCount },
+    { id: 'favorites' as Tab, label: 'Favoriler', icon: Star, badge: favoritesCount > 0 ? favoritesCount : undefined },
     { id: 'settings' as Tab, label: 'Ayarlar', icon: Settings },
   ];
 
@@ -33,16 +35,16 @@ export function BottomNav({ activeTab, onTabChange, signalCount = 0 }: BottomNav
               )}
             >
               <div className="relative">
-                <Icon className={cn('w-6 h-6', isActive && 'drop-shadow-[0_0_8px_hsl(var(--primary))]')} />
+                <Icon className={cn('w-5 h-5', isActive && 'drop-shadow-[0_0_8px_hsl(var(--primary))]')} />
                 {tab.badge !== undefined && tab.badge > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-short text-[10px] font-bold rounded-full flex items-center justify-center text-destructive-foreground">
                     {tab.badge > 99 ? '99+' : tab.badge}
                   </span>
                 )}
               </div>
-              <span className="text-xs mt-1 font-medium">{tab.label}</span>
+              <span className="text-[10px] mt-1 font-medium">{tab.label}</span>
               {isActive && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-primary rounded-full" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary rounded-full" />
               )}
             </button>
           );

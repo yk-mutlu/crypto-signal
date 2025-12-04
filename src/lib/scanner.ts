@@ -7,6 +7,7 @@ export interface ScannerConfig {
   exchanges: ('binance' | 'mexc')[];
   timeframes: ('1h' | '15m')[];
   scanInterval: number; // in seconds
+  customPairs?: string[]; // for favorites filtering
 }
 
 export const defaultConfig: ScannerConfig = {
@@ -86,10 +87,10 @@ class Scanner {
   }
 
   async runScan(): Promise<SignalResult[]> {
-    const { exchanges, timeframes, enableLong, enableShort } = this.config;
+    const { exchanges, timeframes, enableLong, enableShort, customPairs } = this.config;
     const signals: SignalResult[] = [];
     
-    const pairs = BINANCE_PAIRS;
+    const pairs = customPairs && customPairs.length > 0 ? customPairs : BINANCE_PAIRS;
     const totalScans = pairs.length * exchanges.length * timeframes.length;
     
     this.updateStatus({

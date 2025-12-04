@@ -8,11 +8,12 @@ import { cn } from '@/lib/utils';
 interface SignalListProps {
   signals: SignalResult[];
   onClear: () => void;
+  onSignalClick?: (signal: SignalResult) => void;
 }
 
 type FilterType = 'all' | 'long' | 'short';
 
-export function SignalList({ signals, onClear }: SignalListProps) {
+export function SignalList({ signals, onClear, onSignalClick }: SignalListProps) {
   const [filter, setFilter] = useState<FilterType>('all');
 
   const filteredSignals = signals.filter(s => {
@@ -86,7 +87,11 @@ export function SignalList({ signals, onClear }: SignalListProps) {
           </div>
         ) : (
           filteredSignals.map((signal, i) => (
-            <SignalCard key={`${signal.symbol}-${signal.timestamp}-${i}`} signal={signal} />
+            <SignalCard 
+              key={`${signal.symbol}-${signal.timestamp}-${i}`} 
+              signal={signal}
+              onClick={() => onSignalClick?.(signal)}
+            />
           ))
         )}
       </div>

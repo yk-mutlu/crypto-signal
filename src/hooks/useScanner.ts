@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { scanner, ScanStatus, ScannerConfig, defaultConfig } from '@/lib/scanner';
 import { SignalResult } from '@/lib/indicators';
 import { sendSignalNotification, playSignalSound, requestNotificationPermission } from '@/lib/notifications';
+import { BINANCE_PAIRS } from '@/lib/api';
 
 export function useScanner() {
   const [isRunning, setIsRunning] = useState(false);
