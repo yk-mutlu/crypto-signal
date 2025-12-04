@@ -1,12 +1,65 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { useScanner } from '@/hooks/useScanner';
+import { BottomNav } from '@/components/BottomNav';
+import { Dashboard } from '@/components/Dashboard';
+import { SignalList } from '@/components/SignalList';
+import { Settings } from '@/components/Settings';
+
+type Tab = 'dashboard' | 'signals' | 'settings';
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const {
+    isRunning,
+    status,
+    signals,
+    config,
+    notificationsEnabled,
+    soundEnabled,
+    startScanner,
+    stopScanner,
+    updateConfig,
+    enableNotifications,
+    setSoundEnabled,
+    clearSignals,
+  } = useScanner();
+
+  const todaySignals = signals.filter(
+    (s) => Date.now() - s.timestamp < 24 * 60 * 60 * 1000
+  );
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <main className="px-4 pb-24 pt-2 max-w-lg mx-auto">
+        {activeTab === 'dashboard' && (
+          <Dashboard
+            isRunning={isRunning}
+            status={status}
+            signals={signals}
+            onStart={startScanner}
+            onStop={stopScanner}
+          />
+        )}
+        {activeTab === 'signals' && (
+          <SignalList signals={signals} onClear={clearSignals} />
+        )}
+        {activeTab === 'settings' && (
+          <Settings
+            config={config}
+            notificationsEnabled={notificationsEnabled}
+            soundEnabled={soundEnabled}
+            onConfigChange={updateConfig}
+            onEnableNotifications={enableNotifications}
+            onSoundChange={setSoundEnabled}
+          />
+        )}
+      </main>
+
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        signalCount={todaySignals.length}
+      />
     </div>
   );
 };
