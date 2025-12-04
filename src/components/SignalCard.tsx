@@ -4,16 +4,18 @@ import { cn } from '@/lib/utils';
 
 interface SignalCardProps {
   signal: SignalResult;
+  onClick?: () => void;
 }
 
-export function SignalCard({ signal }: SignalCardProps) {
+export function SignalCard({ signal, onClick }: SignalCardProps) {
   const isLong = signal.direction === 'LONG';
   const timeAgo = getTimeAgo(signal.timestamp);
 
   return (
     <div
+      onClick={onClick}
       className={cn(
-        'glass-card p-4 animate-fade-in',
+        'glass-card p-4 animate-fade-in cursor-pointer hover:bg-secondary/50 transition-colors',
         isLong ? 'border-l-4 border-l-long' : 'border-l-4 border-l-short'
       )}
     >

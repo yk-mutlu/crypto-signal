@@ -126,6 +126,9 @@ export interface SignalResult {
   direction: 'LONG' | 'SHORT';
   rsi: number;
   price: number;
+  ma5: number;
+  ma13: number;
+  ma34: number;
   ma200: number;
   timestamp: number;
   strength: number;
@@ -154,6 +157,10 @@ export function analyzeSignal(
 
   const crossover = checkMACrossover(closes, ma5, ma13, ma34);
 
+  const currentMA5 = ma5[lastIdx];
+  const currentMA13 = ma13[lastIdx];
+  const currentMA34 = ma34[lastIdx];
+
   // LONG Signal
   if (
     crossover.direction === 'up' &&
@@ -167,6 +174,9 @@ export function analyzeSignal(
       direction: 'LONG',
       rsi: Math.round(currentRSI * 100) / 100,
       price: currentPrice,
+      ma5: currentMA5,
+      ma13: currentMA13,
+      ma34: currentMA34,
       ma200: currentMA200,
       timestamp: Date.now(),
       strength: crossover.strength,
@@ -186,6 +196,9 @@ export function analyzeSignal(
       direction: 'SHORT',
       rsi: Math.round(currentRSI * 100) / 100,
       price: currentPrice,
+      ma5: currentMA5,
+      ma13: currentMA13,
+      ma34: currentMA34,
       ma200: currentMA200,
       timestamp: Date.now(),
       strength: crossover.strength,
