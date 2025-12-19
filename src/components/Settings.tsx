@@ -12,30 +12,54 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PushNotifications } from '@capacitor/push-notifications';
+import { useState, useEffect } from 'react';
 
 interface SettingsProps {
   config: ScannerConfig;
   notificationsEnabled: boolean;
   soundEnabled: boolean;
   onConfigChange: (config: Partial<ScannerConfig>) => void;
-  onEnableNotifications: () => Promise<boolean>;
   onSoundChange: (enabled: boolean) => void;
 }
 
 export function Settings({
   config,
-  notificationsEnabled,
+  notificationsEnabled: initialNotificationsEnabled,
   soundEnabled,
   onConfigChange,
-  onEnableNotifications,
   onSoundChange,
 }: SettingsProps) {
+
+  // 🔥 KESİN ÇALIŞAN STATE (örnektekiyle aynı)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(initialNotificationsEnabled);
+
   const scanIntervals = [
     { value: 15, label: '15 saniye' },
     { value: 30, label: '30 saniye' },
     { value: 60, label: '1 dakika' },
     { value: 120, label: '2 dakika' },
   ];
+
+  // 🔥 İlk açılışta izin durumunu kontrol et (örnekteki ile birebir aynı)
+  useEffect(() => {
+    const checkPermission = async () => {
+      const perm = await PushNotifications.checkPermissions();
+      setNotificationsEnabled(perm.receive === 'granted');
+    };
+    checkPermission();
+  }, []);
+
+  // 🔥 İzin İsteme fonksiyonu — ÖRNEK KODLA AYNI
+  const handleEnableNotifications = async () => {
+    const perm = await PushNotifications.requestPermissions();
+    if (perm.receive === 'granted') {
+      await PushNotifications.register();
+      setNotificationsEnabled(true);
+    } else {
+      console.log('Bildirim izni reddedildi');
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
@@ -48,6 +72,7 @@ export function Settings({
           Bildirim Ayarları
         </h2>
 
+        {/* 🔥 DÜZELTİLMİŞ NOTIFICATION SATIRI */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Smartphone className="w-5 h-5 text-muted-foreground" />
@@ -58,17 +83,19 @@ export function Settings({
               </p>
             </div>
           </div>
+
           {notificationsEnabled ? (
             <div className="text-xs text-long bg-long/20 px-2 py-1 rounded">
               Aktif
             </div>
           ) : (
-            <Button variant="outline" size="sm" onClick={onEnableNotifications}>
+            <Button variant="outline" size="sm" onClick={handleEnableNotifications}>
               Etkinleştir
             </Button>
           )}
         </div>
 
+        {/* Ses */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Volume2 className="w-5 h-5 text-muted-foreground" />
@@ -147,6 +174,7 @@ export function Settings({
           >
             15M
           </button>
+
           <button
             onClick={() => {
               const has1h = config.timeframes.includes('1h');
@@ -168,7 +196,7 @@ export function Settings({
         </div>
       </div>
 
-      {/* Scan Interval */}
+      {/* Tarama Sıklığı */}
       <div className="glass-card p-4 space-y-4">
         <h2 className="font-semibold text-foreground flex items-center gap-2">
           <Wifi className="w-5 h-5 text-cyan" />
@@ -192,7 +220,6 @@ export function Settings({
           ))}
         </div>
       </div>
-
       {/* Info Box */}
       <div className="glass-card p-4 border-l-4 border-l-cyan">
         <div className="flex gap-3">

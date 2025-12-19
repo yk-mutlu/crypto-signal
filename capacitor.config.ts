@@ -1,17 +1,14 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.eaf83cc6471d4e34acf723771c76805b',
+  appId: 'com.flurystudio.cryptoscanner',
   appName: 'Crypto Scanner',
   webDir: 'dist',
-  server: {
-    url: 'https://eaf83cc6-471d-4e34-acf7-23771c76805b.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  server: {},
   plugins: {
     LocalNotifications: {
       smallIcon: 'ic_stat_icon',
-      iconColor: '#00f7ff',
+      iconColor: '#0004ffff',
       sound: 'signal.wav'
     }
   },

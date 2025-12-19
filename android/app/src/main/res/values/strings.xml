@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Crypto Scanner</string>
+    <string name="title_activity_main">Crypto Scanner</string>
+    <string name="package_name">com.flurystudio.cryptoscanner</string>
+    <string name="custom_url_scheme">com.flurystudio.cryptoscanner</string>
+</resources>

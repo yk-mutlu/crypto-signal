@@ -1,13 +1,14 @@
 import { fetchBinanceKlines, fetchMEXCKlines, BINANCE_PAIRS } from './api';
 import { analyzeSignal, SignalResult } from './indicators';
+import { LocalNotifications } from "@capacitor/local-notifications"; // <-- EKLENDİ
 
 export interface ScannerConfig {
   enableLong: boolean;
   enableShort: boolean;
   exchanges: ('binance' | 'mexc')[];
   timeframes: ('1h' | '15m')[];
-  scanInterval: number; // in seconds
-  customPairs?: string[]; // for favorites filtering
+  scanInterval: number;
+  customPairs?: string[];
 }
 
 export const defaultConfig: ScannerConfig = {
@@ -37,7 +38,7 @@ class Scanner {
   private onStatusChange: StatusCallback | null = null;
   private status: ScanStatus = {
     isScanning: false,
-    currentPair: '',
+    currentPair: "",
     scannedCount: 0,
     totalPairs: 0,
     lastScanTime: 0,
@@ -67,11 +68,7 @@ class Scanner {
     return `${signal.symbol}-${signal.exchange}-${signal.timeframe}-${signal.direction}`;
   }
 
-  private async scanPair(
-    symbol: string,
-    exchange: 'binance' | 'mexc',
-    timeframe: '1h' | '15m'
-  ): Promise<SignalResult | null> {
+  private async scanPair(symbol: string, exchange: 'binance' | 'mexc', timeframe: '1h' | '15m'): Promise<SignalResult | null> {
     try {
       const candles = exchange === 'binance'
         ? await fetchBinanceKlines(symbol, timeframe)
@@ -80,19 +77,20 @@ class Scanner {
       if (candles.length < 200) return null;
 
       return analyzeSignal(candles, symbol, exchange, timeframe);
-    } catch (error) {
-      console.error(`Error scanning ${symbol}:`, error);
+    } catch (err) {
+      console.error(`Error scanning ${symbol}:`, err);
       return null;
     }
   }
 
   async runScan(): Promise<SignalResult[]> {
     const { exchanges, timeframes, enableLong, enableShort, customPairs } = this.config;
+
     const signals: SignalResult[] = [];
-    
     const pairs = customPairs && customPairs.length > 0 ? customPairs : BINANCE_PAIRS;
+
     const totalScans = pairs.length * exchanges.length * timeframes.length;
-    
+
     this.updateStatus({
       isScanning: true,
       scannedCount: 0,
@@ -104,33 +102,46 @@ class Scanner {
     for (const exchange of exchanges) {
       for (const timeframe of timeframes) {
         for (const symbol of pairs) {
+
           this.updateStatus({ currentPair: symbol, scannedCount });
-          
+
           const signal = await this.scanPair(symbol, exchange, timeframe);
-          
+
           if (signal) {
             const key = this.getSignalKey(signal);
-            
-            // Check if we should emit this signal
-            const shouldEmit = 
-              (signal.direction === 'LONG' && enableLong) ||
-              (signal.direction === 'SHORT' && enableShort);
-            
-            // Avoid duplicate signals within 5 minutes
+
+            const shouldEmit =
+              (signal.direction === "LONG" && enableLong) ||
+              (signal.direction === "SHORT" && enableShort);
+
+            // DUPLICATE SİNYAL ÖNLEME
             if (shouldEmit && !this.recentSignals.has(key)) {
               this.recentSignals.add(key);
+
               signals.push(signal);
               this.onSignal?.(signal);
+
+              // ⬇️⬇️ *** BURASI ÖNEMLİ — BİLDİRİM ATMAYI BURAYA KOYDUK *** ⬇️⬇️
+              await LocalNotifications.schedule({
+                notifications: [
+                  {
+                    id: Date.now(),
+                    title: signal.direction === "LONG" ? "📈 LONG Sinyali!" : "📉 SHORT Sinyali!",
+                    body: `${signal.symbol} — ${signal.timeframe} — ${signal.direction}`,
+                    sound: "default",
+                    smallIcon: "ic_stat_icon",
+                  }
+                ]
+              });
+
               this.updateStatus({ signalsFound: this.status.signalsFound + 1 });
-              
-              // Remove from recent after 5 minutes
-              setTimeout(() => this.recentSignals.delete(key), 5 * 60 * 1000);
+
+              setTimeout(() => this.recentSignals.delete(key), 5 * 60 * 1000); // 5 dk duplicate engeli
             }
           }
-          
+
           scannedCount++;
-          
-          // Small delay to avoid rate limiting
+
           await new Promise(r => setTimeout(r, 100));
         }
       }
@@ -138,7 +149,7 @@ class Scanner {
 
     this.updateStatus({
       isScanning: false,
-      currentPair: '',
+      currentPair: "",
       lastScanTime: Date.now(),
     });
 
@@ -147,14 +158,8 @@ class Scanner {
 
   start() {
     if (this.intervalId) return;
-    
-    // Run immediately
     this.runScan();
-    
-    // Then run on interval
-    this.intervalId = window.setInterval(() => {
-      this.runScan();
-    }, this.config.scanInterval * 1000);
+    this.intervalId = window.setInterval(() => this.runScan(), this.config.scanInterval * 1000);
   }
 
   stop() {
